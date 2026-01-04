@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val repo = MoonRepository()
-                val getPhase = GetCurrentMoonPhaseUseCase(repo)
+                val getPhase = GetCurrentMoonPhaseUseCase()
                 val schedule = ScheduleMoonNotificationUseCase(applicationContext, repo)
                 return MoonPhaseViewModel(getPhase, schedule) as T
             }

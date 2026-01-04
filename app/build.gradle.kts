@@ -56,6 +56,7 @@ dependencies {
 
     // WorkManager for scheduling notifications
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.work.runtime.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -30,7 +30,7 @@ class MoonNotificationWorker(
         }
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+//            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("Moon Phase Reminder")
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
