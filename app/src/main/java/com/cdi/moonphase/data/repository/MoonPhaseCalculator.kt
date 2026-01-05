@@ -30,6 +30,7 @@ object MoonPhaseCalculator {
         return fromJulianDay(jd)
     }
 
+    // TODO: adjust calculation
     private fun fromJulianDay(jdUtc: Double): Result {
         val daysSinceNew = jdUtc - REFERENCE_NEW_MOON_JD
         val cycles = daysSinceNew / SYNODIC_MONTH
