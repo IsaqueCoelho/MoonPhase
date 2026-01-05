@@ -1,5 +1,6 @@
 package com.cdi.moonphase.data.repository
 
+import android.util.Log
 import java.time.*
 import kotlin.math.*
 
@@ -25,6 +26,7 @@ object MoonPhaseCalculator {
     fun fromLocalDateTime(local: LocalDateTime, zone: ZoneId): Result {
         val utc = local.atZone(zone).withZoneSameInstant(ZoneOffset.UTC)
         val jd = toJulianDay(utc)
+        Log.e("MoonPhase", "fromLocalDateTime: jd=$jd utc=$utc")
         return fromJulianDay(jd)
     }
 
