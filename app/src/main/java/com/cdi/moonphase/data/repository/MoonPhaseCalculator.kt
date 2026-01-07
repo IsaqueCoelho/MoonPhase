@@ -68,14 +68,14 @@ object MoonPhaseCalculator {
         // Define small tolerance for exact quarter boundaries
         val eps = 1e-3
         return when {
-            isNear(fraction, 0.0, eps) || fraction > 1.0 - eps -> "New Moon"
-            fraction < 0.25 - eps -> "Waxing Crescent"
-            isNear(fraction, 0.25, eps) -> "First Quarter"
-            fraction < 0.50 - eps -> "Waxing Gibbous"
-            isNear(fraction, 0.50, eps) -> "Full Moon"
-            fraction < 0.75 - eps -> "Waning Gibbous"
-            isNear(fraction, 0.75, eps) -> "Last Quarter"
-            else -> "Waning Crescent"
+            isNear(fraction, 0.0, eps) || fraction > 1.0 - eps -> "Lua Nova"
+            fraction < 0.25 - eps -> "Crescente"
+            isNear(fraction, 0.25, eps) -> "Primeiro Quarto"
+            fraction < 0.50 - eps -> "Gibosa Decrescente"
+            isNear(fraction, 0.50, eps) -> "Lua Cheia"
+            fraction < 0.75 - eps -> "Gibosa Decrescente"
+            isNear(fraction, 0.75, eps) -> "Ultimo Quarto"
+            else -> "Decrescente"
         }
     }
 
