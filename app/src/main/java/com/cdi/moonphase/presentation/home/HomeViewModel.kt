@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cdi.moonphase.domain.model.LocationResult
 import com.cdi.moonphase.domain.model.MoonLocation
+import com.cdi.moonphase.domain.model.ThemeMode
 import com.cdi.moonphase.domain.repository.UserPrefsRepository
 import com.cdi.moonphase.domain.usecase.GetMoonInfoForDate
 import com.cdi.moonphase.domain.usecase.RefreshLocationUseCase
@@ -37,6 +38,15 @@ class HomeViewModel @Inject constructor(
 
     /** Re-acquire location and recompute today's Moon info. */
     fun refresh() = load(isRefresh = true)
+
+    /**
+     * Persist an explicit theme choice (the top sun/moon toggle). The Composable computes the
+     * desired mode from the currently rendered theme, so this VM never needs to know whether
+     * the device is in dark mode. The new value flows back through DataStore to the whole app.
+     */
+    fun setTheme(mode: ThemeMode) {
+        viewModelScope.launch { userPrefsRepository.setThemeMode(mode) }
+    }
 
     private fun observeTheme() {
         userPrefsRepository.themeMode

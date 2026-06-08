@@ -6,29 +6,18 @@ import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 import com.cdi.moonphase.domain.model.ThemeMode
 
-private val DarkColors = darkColorScheme(
-    primary = MoonColors.NightHalo,
-    background = MoonColors.NightBackground,
-    surface = MoonColors.NightSurface,
-    onBackground = MoonColors.NightOnSurface,
-    onSurface = MoonColors.NightOnSurface,
-    onSurfaceVariant = MoonColors.NightOnSurfaceMuted,
-)
-
-private val LightColors = lightColorScheme(
-    primary = MoonColors.DayHalo,
-    background = MoonColors.DayBackground,
-    surface = MoonColors.DaySurface,
-    onBackground = MoonColors.DayOnSurface,
-    onSurface = MoonColors.DayOnSurface,
-    onSurfaceVariant = MoonColors.DayOnSurfaceMuted,
-)
-
 /**
- * App theme. A custom palette is used (not dynamic color) so the moon imagery reads
- * consistently across devices. [themeMode] resolves the user's persisted preference.
+ * App theme. A fixed, brand-specific palette is used (not dynamic color) so the Moon imagery
+ * reads consistently across devices. [themeMode] resolves the user's persisted preference,
+ * defaulting to the system setting.
+ *
+ * The semantic [MoonPalette] is the source of truth (see [MoonTheme.colors]); the Material
+ * [androidx.compose.material3.ColorScheme] below is derived from it only so stock components
+ * (buttons, ripples) inherit matching colors.
  */
 @Composable
 fun MoonPhaseTheme(
@@ -40,9 +29,43 @@ fun MoonPhaseTheme(
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
     }
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = Typography(),
-        content = content,
-    )
+    val palette = if (darkTheme) DarkMoonPalette else LightMoonPalette
+
+    val colorScheme = if (darkTheme) {
+        darkColorScheme(
+            primary = palette.amber,
+            onPrimary = palette.onAmber,
+            background = palette.background,
+            surface = palette.surface,
+            onBackground = palette.textPrimary,
+            onSurface = palette.textPrimary,
+            onSurfaceVariant = palette.textSecondary,
+        )
+    } else {
+        lightColorScheme(
+            primary = palette.amber,
+            onPrimary = palette.onAmber,
+            background = palette.background,
+            surface = palette.surface,
+            onBackground = palette.textPrimary,
+            onSurface = palette.textPrimary,
+            onSurfaceVariant = palette.textSecondary,
+        )
+    }
+
+    CompositionLocalProvider(LocalMoonPalette provides palette) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography(),
+            content = content,
+        )
+    }
+}
+
+/** Ergonomic accessor for the design tokens: `MoonTheme.colors.textPrimary`. */
+object MoonTheme {
+    val colors: MoonPalette
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalMoonPalette.current
 }

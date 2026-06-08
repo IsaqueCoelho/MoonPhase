@@ -1,9 +1,13 @@
 package com.cdi.moonphase.presentation.designsystem
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -14,60 +18,98 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import kotlin.math.abs
 
 /**
- * A single-canvas, parametric Moon. The lit shape is built geometrically from
+ * A single-canvas, parametric Moon. All eight phases are built geometrically from
  * [illumination] (0 = New, 1 = Full) and [waxing] — there are no per-phase bitmaps. The
- * terminator is a half-ellipse whose horizontal radius is `r * (1 - 2*illumination)`, which
- * is exactly the projection of the day/night boundary onto the visible disk.
+ * terminator is a half-ellipse whose horizontal radius is `r * (1 - 2*illumination)`, exactly
+ * the projection of the day/night boundary onto the visible disk.
  *
- * The incoming [illumination] is animated, so the terminator glides smoothly when the value
- * changes (e.g. on refresh) rather than snapping.
+ * Rendering follows the spec per theme: light draws a faint black-6% limb so the disk does not
+ * dissolve into the pale background; dark draws a soft radial halo instead of an outline, and
+ * (when [haloPulse] is on and motion is allowed) the halo pulses on a ~5 s loop.
+ *
+ * The incoming [illumination] is animated (~800 ms, FastOutSlowIn) so the terminator glides
+ * when the value changes (e.g. on refresh) rather than snapping.
  *
  * @param illumination lit fraction in `[0, 1]`.
  * @param waxing if true the lit limb is on the right (northern-hemisphere convention).
+ * @param contentDescription accessibility label, typically the phase name.
+ * @param haloPulse animate the dark-theme halo; ignored in light or when motion is reduced.
  */
 @Composable
 fun MoonDisk(
     illumination: Float,
     waxing: Boolean,
     modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+    haloPulse: Boolean = false,
 ) {
+    val palette = MoonTheme.colors
+
     val animatedIllumination by animateFloatAsState(
         targetValue = illumination.coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = 700),
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label = "illumination",
     )
 
-    val dark = isSystemInDarkTheme()
-    val litColor = if (dark) MoonColors.NightMoonLit else MoonColors.DayMoonLit
-    val shadowColor = if (dark) MoonColors.NightMoonShadow else MoonColors.DayMoonShadow
-    val haloColor = if (dark) MoonColors.NightHalo else MoonColors.DayHalo
+    val reduceMotion = rememberReduceMotion()
+    val haloScale = if (palette.isDark && haloPulse && !reduceMotion) {
+        val transition = rememberInfiniteTransition(label = "halo")
+        transition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.12f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 5_000),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "haloScale",
+        ).value
+    } else {
+        1f
+    }
 
-    Canvas(modifier = modifier) {
+    val diskModifier = if (contentDescription != null) {
+        modifier.semantics { this.contentDescription = contentDescription }
+    } else {
+        modifier
+    }
+
+    Canvas(modifier = diskModifier) {
         val radius = minOf(size.width, size.height) / 2f * 0.86f
         val center = Offset(size.width / 2f, size.height / 2f)
 
-        drawHalo(center, radius, haloColor)
-        // Dark base disk, then paint the lit region on top.
-        drawCircle(color = shadowColor, radius = radius, center = center)
-        drawPath(litShape(center, radius, animatedIllumination, waxing), color = litColor)
-        // Subtle limb outline to keep the disk readable at New Moon.
-        drawCircle(
-            color = litColor.copy(alpha = 0.18f),
-            radius = radius,
-            center = center,
-            style = Stroke(width = radius * 0.012f),
+        if (palette.isDark) {
+            drawHalo(center, radius * haloScale, palette.halo)
+        }
+
+        // Shadowed base disk, then paint the lit region on top.
+        drawCircle(color = palette.moonShadow, radius = radius, center = center)
+        drawPath(
+            litShape(center, radius, animatedIllumination, waxing),
+            color = palette.moonLit,
         )
+
+        // Light theme keeps a faint limb so the pale disk does not dissolve into the background.
+        if (palette.moonOutline.alpha > 0f) {
+            drawCircle(
+                color = palette.moonOutline,
+                radius = radius,
+                center = center,
+                style = Stroke(width = radius * 0.06f),
+            )
+        }
     }
 }
 
 private fun DrawScope.drawHalo(center: Offset, radius: Float, halo: Color) {
-    val haloRadius = radius * 1.55f
+    val haloRadius = radius * 1.6f
     drawCircle(
         brush = Brush.radialGradient(
-            colors = listOf(halo.copy(alpha = 0.28f), Color.Transparent),
+            colors = listOf(halo.copy(alpha = 0.22f), Color.Transparent),
             center = center,
             radius = haloRadius,
         ),
@@ -78,7 +120,7 @@ private fun DrawScope.drawHalo(center: Offset, radius: Float, halo: Color) {
 
 /**
  * Builds the lit region as the area enclosed by the outer semicircle on the lit side and the
- * terminator half-ellipse. See class docs for the geometry.
+ * terminator half-ellipse. See the class docs for the geometry.
  */
 private fun litShape(center: Offset, radius: Float, illumination: Float, waxing: Boolean): Path {
     val lit = illumination.coerceIn(0f, 1f)

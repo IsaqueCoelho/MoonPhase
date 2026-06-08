@@ -50,6 +50,8 @@ class LocationDataSource @Inject constructor(
             PackageManager.PERMISSION_GRANTED
 
     private companion object {
-        const val LOCATION_TIMEOUT_MS = 5_000L
+        // REQ-02: the location attempt must never block start-up beyond ~2 s; on timeout we
+        // fall back to a date-only computation.
+        const val LOCATION_TIMEOUT_MS = 2_000L
     }
 }

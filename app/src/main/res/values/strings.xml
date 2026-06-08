@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">MoonPhase</string>
+    <string name="app_tagline">As fases da Lua, sempre offline.</string>
 
     <!-- Nomes das fases -->
     <string name="phase_new">Lua Nova</string>
@@ -25,17 +26,21 @@
     <string name="home_loading">Calculando a fase da Lua…</string>
     <string name="home_illumination_format">%1$d%% iluminada</string>
     <string name="home_lunar_day_format">Dia %1$d do ciclo lunar</string>
-    <string name="home_next_event_format">A seguir: %1$s em %2$s</string>
+    <string name="home_next_phase_label">Próxima fase</string>
+    <string name="home_next_event_format">%1$s em %2$s</string>
     <string name="home_refresh">Atualizar</string>
-    <string name="home_location_active">Localização aproximada ativa</string>
-    <string name="home_location_disabled">Toque para ativar a localização</string>
-    <string name="home_waxing">Crescente</string>
-    <string name="home_waning">Minguante</string>
+    <string name="home_location_label_nearby">Localização aproximada ativa</string>
+    <string name="home_location_disabled">Localização não definida · ativar</string>
+    <string name="home_toggle_theme">Alternar tema claro e escuro</string>
 
     <!-- Permissão -->
-    <string name="permission_title">Localização aproximada</string>
-    <string name="permission_rationale">Usamos sua localização aproximada apenas para ajustar a visão da Lua à sua região. A fase é calculada totalmente no aparelho.</string>
-    <string name="permission_privacy">Sua localização fica só no aparelho e nunca é enviada para lugar nenhum.</string>
+    <string name="permission_illustration_cd">Localização e Lua</string>
+    <string name="permission_title">Ajuste a Lua à sua região</string>
+    <string name="permission_rationale">Usamos sua localização aproximada apenas para refinar o horário de nascer e pôr da Lua e a orientação do disco. A fase é calculada totalmente no aparelho.</string>
+    <string name="permission_privacy">Fica só no aparelho, nunca é enviada.</string>
+    <string name="permission_benefit_region">Horários de nascer e pôr ajustados à sua região.</string>
+    <string name="permission_benefit_orientation">Orientação do disco da Lua como você a vê no céu.</string>
+    <string name="permission_benefit_privacy">Cálculo 100%% offline: sua localização nunca sai do aparelho.</string>
     <string name="permission_allow">Permitir localização</string>
     <string name="permission_open_settings">Abrir configurações</string>
     <string name="permission_continue_without">Continuar sem localização</string>
