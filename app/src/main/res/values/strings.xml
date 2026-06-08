@@ -1,3 +1,43 @@
 <resources>
     <string name="app_name">MoonPhase</string>
+
+    <!-- Nomes das fases -->
+    <string name="phase_new">Lua Nova</string>
+    <string name="phase_waxing_crescent">Lua Crescente</string>
+    <string name="phase_first_quarter">Quarto Crescente</string>
+    <string name="phase_waxing_gibbous">Gibosa Crescente</string>
+    <string name="phase_full">Lua Cheia</string>
+    <string name="phase_waning_gibbous">Gibosa Minguante</string>
+    <string name="phase_last_quarter">Quarto Minguante</string>
+    <string name="phase_waning_crescent">Lua Minguante</string>
+
+    <!-- Descrições das fases -->
+    <string name="phase_desc_new">O lado iluminado da Lua está voltado para longe da Terra. A Lua some no céu.</string>
+    <string name="phase_desc_waxing_crescent">Um fino arco de luz aparece e cresce a cada noite.</string>
+    <string name="phase_desc_first_quarter">Metade do disco está iluminado e a luz continua a crescer.</string>
+    <string name="phase_desc_waxing_gibbous">Mais da metade está iluminada, a caminho da Lua Cheia.</string>
+    <string name="phase_desc_full">O disco está totalmente iluminado, visível a noite inteira.</string>
+    <string name="phase_desc_waning_gibbous">A iluminação começa a diminuir após a Lua Cheia.</string>
+    <string name="phase_desc_last_quarter">Metade do disco está iluminado e a luz continua a diminuir.</string>
+    <string name="phase_desc_waning_crescent">Um arco fino de luz que encolhe rumo à Lua Nova.</string>
+
+    <!-- Home -->
+    <string name="home_loading">Calculando a fase da Lua…</string>
+    <string name="home_illumination_format">%1$d%% iluminada</string>
+    <string name="home_lunar_day_format">Dia %1$d do ciclo lunar</string>
+    <string name="home_next_event_format">A seguir: %1$s em %2$s</string>
+    <string name="home_refresh">Atualizar</string>
+    <string name="home_location_active">Localização aproximada ativa</string>
+    <string name="home_location_disabled">Toque para ativar a localização</string>
+    <string name="home_waxing">Crescente</string>
+    <string name="home_waning">Minguante</string>
+
+    <!-- Permissão -->
+    <string name="permission_title">Localização aproximada</string>
+    <string name="permission_rationale">Usamos sua localização aproximada apenas para ajustar a visão da Lua à sua região. A fase é calculada totalmente no aparelho.</string>
+    <string name="permission_privacy">Sua localização fica só no aparelho e nunca é enviada para lugar nenhum.</string>
+    <string name="permission_allow">Permitir localização</string>
+    <string name="permission_open_settings">Abrir configurações</string>
+    <string name="permission_continue_without">Continuar sem localização</string>
+    <string name="permission_denied_hint">Permissão negada. Você pode liberá-la nas configurações do app.</string>
 </resources>

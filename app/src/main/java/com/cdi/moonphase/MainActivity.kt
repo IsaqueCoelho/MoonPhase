@@ -1,53 +1,40 @@
 package com.cdi.moonphase
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import com.cdi.moonphase.data.repository.MoonRepository
-import com.cdi.moonphase.domain.usecase.GetCurrentMoonPhaseUseCase
-import com.cdi.moonphase.domain.usecase.ScheduleMoonNotificationUseCase
-import com.cdi.moonphase.presentation.MoonPhaseScreen
-import com.cdi.moonphase.presentation.MoonPhaseViewModel
-import com.cdi.moonphase.ui.theme.MoonPhaseTheme
+import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.cdi.moonphase.presentation.MainUiState
+import com.cdi.moonphase.presentation.MainViewModel
+import com.cdi.moonphase.presentation.designsystem.MoonPhaseTheme
+import com.cdi.moonphase.presentation.navigation.MoonNavHost
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    private val viewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        requestNotificationPermissionIfNeeded()
-
-        val viewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val repo = MoonRepository()
-                val getPhase = GetCurrentMoonPhaseUseCase()
-                val schedule = ScheduleMoonNotificationUseCase(applicationContext, repo)
-                return MoonPhaseViewModel(getPhase, schedule) as T
-            }
-        })[MoonPhaseViewModel::class.java]
+        // Hold the native splash until preferences resolve the start destination + theme,
+        // so we never flash an unthemed white frame before the first real screen.
+        splashScreen.setKeepOnScreenCondition { viewModel.uiState.value is MainUiState.Loading }
 
         setContent {
-            MoonPhaseTheme {
-                MoonPhaseScreen(viewModel)
-            }
-        }
-    }
-
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-            if (!granted) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+            val state by viewModel.uiState.collectAsStateWithLifecycle()
+            when (val ready = state) {
+                MainUiState.Loading -> Unit // splash is still showing
+                is MainUiState.Ready -> MoonPhaseTheme(themeMode = ready.themeMode) {
+                    MoonNavHost(startDestination = ready.startDestination)
+                }
             }
         }
     }

@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MoonPhase" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Launch theme: the system splash screen (androidx.core:core-splashscreen). It holds a
+         solid background + icon; the decorative gradient/halo belong to Compose. -->
+    <style name="Theme.MoonPhase" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.MoonPhase.Main</item>
+    </style>
+
+    <!-- Applied to the Activity once the splash is dismissed. -->
+    <style name="Theme.MoonPhase.Main" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
 </resources>
