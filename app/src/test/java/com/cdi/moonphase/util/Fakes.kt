@@ -1,5 +1,7 @@
 package com.cdi.moonphase.util
 
+import com.cdi.moonphase.domain.model.CalendarDay
+import com.cdi.moonphase.domain.model.CalendarMonth
 import com.cdi.moonphase.domain.model.IlluminationFraction
 import com.cdi.moonphase.domain.model.LocationResult
 import com.cdi.moonphase.domain.model.LunarDay
@@ -15,6 +17,7 @@ import com.cdi.moonphase.domain.repository.UserPrefsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDate
+import java.time.YearMonth
 
 fun fakeMoonInfo(
     date: LocalDate = LocalDate.of(2024, 1, 25),
@@ -40,6 +43,23 @@ class FakeMoonRepository(
 
     override suspend fun getNextEvent(date: LocalDate): LunarEvent =
         base.nextEvent ?: LunarEvent(PhaseType.NEW, date.plusDays(1))
+
+    override suspend fun getMonth(month: YearMonth): CalendarMonth =
+        CalendarMonth(
+            yearMonth = month,
+            days = (1..month.lengthOfMonth()).map { day ->
+                CalendarDay(
+                    date = month.atDay(day),
+                    phase = base.phase,
+                    illumination = base.illumination,
+                )
+            },
+        )
+
+    override suspend fun getUpcomingEvents(date: LocalDate, count: Int): List<LunarEvent> =
+        List(count) { index ->
+            LunarEvent(PhaseType.entries[index % PhaseType.entries.size], date.plusDays((index + 1).toLong() * 7))
+        }
 }
 
 class FakeLocationRepository(

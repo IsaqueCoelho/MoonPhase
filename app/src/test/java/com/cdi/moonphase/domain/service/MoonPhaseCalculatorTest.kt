@@ -114,4 +114,33 @@ class MoonPhaseCalculatorTest {
 
         assertEquals(PhaseType.LAST_QUARTER, event.phase)
     }
+
+    @Test
+    fun `the next four cardinal events cover each phase once, in chronological order`() {
+        val events = calculator.upcomingCardinalEvents(referenceNewMoon, ZoneOffset.UTC, count = 4)
+
+        assertEquals(4, events.size)
+        // One upcoming occurrence of each cardinal phase.
+        assertEquals(
+            setOf(
+                PhaseType.FIRST_QUARTER,
+                PhaseType.FULL,
+                PhaseType.LAST_QUARTER,
+                PhaseType.NEW,
+            ),
+            events.map { it.phase }.toSet(),
+        )
+        // Strictly ascending dates.
+        events.zipWithNext().forEach { (earlier, later) ->
+            assertTrue("expected ${earlier.date} before ${later.date}", earlier.date.isBefore(later.date))
+        }
+        // Starting right after a New Moon, First Quarter comes first.
+        assertEquals(PhaseType.FIRST_QUARTER, events.first().phase)
+    }
+
+    @Test
+    fun `requesting zero upcoming events yields an empty list`() {
+        val events = calculator.upcomingCardinalEvents(referenceNewMoon, ZoneOffset.UTC, count = 0)
+        assertTrue(events.isEmpty())
+    }
 }

@@ -7,6 +7,7 @@ import com.cdi.moonphase.domain.model.MoonLocation
 import com.cdi.moonphase.domain.model.ThemeMode
 import com.cdi.moonphase.domain.repository.UserPrefsRepository
 import com.cdi.moonphase.domain.usecase.GetMoonInfoForDate
+import com.cdi.moonphase.domain.usecase.GetUpcomingPhases
 import com.cdi.moonphase.domain.usecase.RefreshLocationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getMoonInfoForDate: GetMoonInfoForDate,
+    private val getUpcomingPhases: GetUpcomingPhases,
     private val refreshLocation: RefreshLocationUseCase,
     private val userPrefsRepository: UserPrefsRepository,
     private val clock: Clock,
@@ -65,13 +67,16 @@ class HomeViewModel @Inject constructor(
                 LocationResult.Unavailable -> null
             }
 
-            val moonInfo = getMoonInfoForDate(LocalDate.now(clock), location)
+            val today = LocalDate.now(clock)
+            val moonInfo = getMoonInfoForDate(today, location)
+            val upcoming = getUpcomingPhases(today)
 
             _uiState.update {
                 it.copy(
                     isLoading = false,
                     isRefreshing = false,
                     moonInfo = moonInfo,
+                    upcomingEvents = upcoming,
                     locationLabel = if (location != null) LocationLabel.Active else LocationLabel.Disabled,
                 )
             }

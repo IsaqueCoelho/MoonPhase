@@ -39,6 +39,8 @@ import kotlin.math.abs
  * @param waxing if true the lit limb is on the right (northern-hemisphere convention).
  * @param contentDescription accessibility label, typically the phase name.
  * @param haloPulse animate the dark-theme halo; ignored in light or when motion is reduced.
+ * @param decorate draw the per-theme halo (dark) and faint limb (light). Turn this off for the
+ *   tiny calendar mini-moons, which read better as plain lit/shadow discs (see the prototype).
  */
 @Composable
 fun MoonDisk(
@@ -47,6 +49,7 @@ fun MoonDisk(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     haloPulse: Boolean = false,
+    decorate: Boolean = true,
 ) {
     val palette = MoonTheme.colors
 
@@ -57,7 +60,7 @@ fun MoonDisk(
     )
 
     val reduceMotion = rememberReduceMotion()
-    val haloScale = if (palette.isDark && haloPulse && !reduceMotion) {
+    val haloScale = if (palette.isDark && decorate && haloPulse && !reduceMotion) {
         val transition = rememberInfiniteTransition(label = "halo")
         transition.animateFloat(
             initialValue = 1f,
@@ -82,7 +85,7 @@ fun MoonDisk(
         val radius = minOf(size.width, size.height) / 2f * 0.86f
         val center = Offset(size.width / 2f, size.height / 2f)
 
-        if (palette.isDark) {
+        if (palette.isDark && decorate) {
             drawHalo(center, radius * haloScale, palette.halo)
         }
 
@@ -94,7 +97,7 @@ fun MoonDisk(
         )
 
         // Light theme keeps a faint limb so the pale disk does not dissolve into the background.
-        if (palette.moonOutline.alpha > 0f) {
+        if (decorate && palette.moonOutline.alpha > 0f) {
             drawCircle(
                 color = palette.moonOutline,
                 radius = radius,

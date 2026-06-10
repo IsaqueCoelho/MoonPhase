@@ -1,5 +1,6 @@
 package com.cdi.moonphase.presentation.home
 
+import com.cdi.moonphase.domain.model.LunarEvent
 import com.cdi.moonphase.domain.model.MoonInfo
 import com.cdi.moonphase.domain.model.ThemeMode
 
@@ -11,6 +12,8 @@ data class HomeUiState(
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     val moonInfo: MoonInfo? = null,
+    /** The next key phases, shown in the "próximas fases" panel (Fase 2). */
+    val upcomingEvents: List<LunarEvent> = emptyList(),
     val locationLabel: LocationLabel = LocationLabel.Undefined,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
 )
