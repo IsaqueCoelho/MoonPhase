@@ -2,6 +2,10 @@ package com.cdi.moonphase.presentation.permission
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cdi.moonphase.domain.analytics.AnalyticsEvent
+import com.cdi.moonphase.domain.analytics.AnalyticsTracker
+import com.cdi.moonphase.domain.analytics.PermissionPrimerActionType
+import com.cdi.moonphase.domain.analytics.PermissionSystemResultType
 import com.cdi.moonphase.domain.repository.UserPrefsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -22,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PermissionViewModel @Inject constructor(
     private val userPrefsRepository: UserPrefsRepository,
+    private val analytics: AnalyticsTracker,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PermissionUiState())
@@ -30,11 +35,23 @@ class PermissionViewModel @Inject constructor(
     private val _navigateToHome = Channel<Unit>(Channel.BUFFERED)
     val navigateToHome = _navigateToHome.receiveAsFlow()
 
-    /** Mark that the system dialog has been (or is about to be) shown, just once. */
-    fun onPrimingShown() = markPrimed()
+    init {
+        analytics.track(AnalyticsEvent.PermissionPrimerViewed)
+    }
+
+    /** The "Allow" primer button: records the choice, then the screen launches the system dialog. */
+    fun onAllowClicked() {
+        analytics.track(AnalyticsEvent.PermissionPrimerAction(PermissionPrimerActionType.ALLOW))
+        markPrimed()
+    }
 
     fun onPermissionResult(granted: Boolean) {
         markPrimed()
+        analytics.track(
+            AnalyticsEvent.PermissionSystemResult(
+                if (granted) PermissionSystemResultType.GRANTED else PermissionSystemResultType.DENIED,
+            ),
+        )
         if (granted) {
             _uiState.update { it.copy(stage = PermissionStage.Granted) }
             goHome()
@@ -44,6 +61,7 @@ class PermissionViewModel @Inject constructor(
     }
 
     fun onContinueWithoutLocation() {
+        analytics.track(AnalyticsEvent.PermissionPrimerAction(PermissionPrimerActionType.SKIP))
         markPrimed()
         _uiState.update { it.copy(stage = PermissionStage.Skipped) }
         goHome()

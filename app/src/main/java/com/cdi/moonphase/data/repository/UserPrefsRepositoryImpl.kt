@@ -19,4 +19,7 @@ class UserPrefsRepositoryImpl @Inject constructor(
 
     override suspend fun setHasPrimedLocationPermission(primed: Boolean) =
         dataSource.setHasPrimedLocationPermission(primed)
+
+    override suspend fun firstOpenDateOrSet(today: String): String =
+        dataSource.firstOpenDateOrSet(today)
 }

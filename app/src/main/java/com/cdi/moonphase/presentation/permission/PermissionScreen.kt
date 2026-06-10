@@ -73,7 +73,7 @@ fun PermissionScreen(
     PermissionContent(
         uiState = uiState,
         onRequestPermission = {
-            viewModel.onPrimingShown()
+            viewModel.onAllowClicked()
             // Privacy by default: only COARSE is ever requested, never FINE.
             permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         },

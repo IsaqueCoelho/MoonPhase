@@ -21,4 +21,10 @@ interface UserPrefsRepository {
     val hasPrimedLocationPermission: Flow<Boolean>
 
     suspend fun setHasPrimedLocationPermission(primed: Boolean)
+
+    /**
+     * Returns the persisted first-open date (ISO), stamping [today] on first call. Backs the
+     * `firstOpenDate` analytics cohort property.
+     */
+    suspend fun firstOpenDateOrSet(today: String): String
 }

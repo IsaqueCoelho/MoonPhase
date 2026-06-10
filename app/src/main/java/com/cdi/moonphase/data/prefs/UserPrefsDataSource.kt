@@ -36,8 +36,21 @@ class UserPrefsDataSource @Inject constructor(
         dataStore.edit { it[HAS_PRIMED_LOCATION] = primed }
     }
 
+    /**
+     * Returns the persisted first-open date (ISO), writing [today] on the very first call. The
+     * read-and-write is atomic within a single [DataStore.edit], so the cohort date is stamped
+     * exactly once even under concurrent access.
+     */
+    suspend fun firstOpenDateOrSet(today: String): String {
+        val prefs = dataStore.edit { p ->
+            if (p[FIRST_OPEN_DATE] == null) p[FIRST_OPEN_DATE] = today
+        }
+        return prefs[FIRST_OPEN_DATE] ?: today
+    }
+
     private companion object {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val HAS_PRIMED_LOCATION = booleanPreferencesKey("has_primed_location_permission")
+        val FIRST_OPEN_DATE = stringPreferencesKey("first_open_date")
     }
 }

@@ -7,6 +7,12 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+// Apply the Firebase google-services plugin only once a config file is present, so the project
+// builds and runs with analytics dormant until you drop in app/google-services.json.
+if (project.file("google-services.json").exists()) {
+    apply(plugin = libs.plugins.google.services.get().pluginId)
+}
+
 android {
     namespace = "com.cdi.moonphase"
     compileSdk = 35
@@ -39,6 +45,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // BuildConfig.DEBUG / VERSION_NAME drive the analytics backend wiring + appVersion property.
+        buildConfig = true
     }
 }
 
@@ -77,6 +85,10 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
+
+    // Analytics (Firebase) — backend stays dormant until app/google-services.json is added
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

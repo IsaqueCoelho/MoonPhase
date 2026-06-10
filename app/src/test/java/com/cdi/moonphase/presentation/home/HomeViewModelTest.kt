@@ -3,6 +3,9 @@ package com.cdi.moonphase.presentation.home
 import app.cash.turbine.test
 import com.cdi.moonphase.domain.model.LocationResult
 import com.cdi.moonphase.domain.model.MoonLocation
+import com.cdi.moonphase.domain.analytics.AnalyticsEvent
+import com.cdi.moonphase.domain.analytics.LocationMode
+import com.cdi.moonphase.domain.analytics.ScreenName
 import com.cdi.moonphase.domain.usecase.GetMoonInfoForDate
 import com.cdi.moonphase.domain.usecase.GetUpcomingPhases
 import com.cdi.moonphase.domain.usecase.RefreshLocationUseCase
@@ -10,11 +13,14 @@ import com.cdi.moonphase.util.FakeLocationRepository
 import com.cdi.moonphase.util.FakeMoonRepository
 import com.cdi.moonphase.util.FakeUserPrefsRepository
 import com.cdi.moonphase.util.MainDispatcherRule
+import com.cdi.moonphase.util.RecordingAnalyticsTracker
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.time.Clock
@@ -32,11 +38,13 @@ class HomeViewModelTest {
     private fun viewModel(
         locationRepository: FakeLocationRepository = FakeLocationRepository(),
         prefs: FakeUserPrefsRepository = FakeUserPrefsRepository(),
+        analytics: RecordingAnalyticsTracker = RecordingAnalyticsTracker(),
     ) = HomeViewModel(
         getMoonInfoForDate = GetMoonInfoForDate(FakeMoonRepository()),
         getUpcomingPhases = GetUpcomingPhases(FakeMoonRepository()),
         refreshLocation = RefreshLocationUseCase(locationRepository),
         userPrefsRepository = prefs,
+        analytics = analytics,
         clock = fixedClock,
     )
 
@@ -80,5 +88,58 @@ class HomeViewModelTest {
             val loaded = awaitItem()
             assertEquals(java.time.LocalDate.of(2024, 1, 25), loaded.moonInfo?.date)
         }
+    }
+
+    @Test
+    fun `tracks home screen_view on creation`() = runTest {
+        val analytics = RecordingAnalyticsTracker()
+
+        viewModel(analytics = analytics)
+        advanceUntilIdle()
+
+        assertTrue(
+            analytics.events.any {
+                it is AnalyticsEvent.ScreenView && it.screen == ScreenName.HOME
+            },
+        )
+    }
+
+    @Test
+    fun `reports date_fallback location mode once when no fix is available`() = runTest {
+        val analytics = RecordingAnalyticsTracker()
+
+        viewModel(
+            locationRepository = FakeLocationRepository(LocationResult.Unavailable),
+            analytics = analytics,
+        )
+        advanceUntilIdle()
+
+        assertEquals(LocationMode.DATE_FALLBACK, analytics.locationMode)
+        assertEquals(
+            1,
+            analytics.events.count {
+                it is AnalyticsEvent.LocationModeActive && it.mode == LocationMode.DATE_FALLBACK
+            },
+        )
+    }
+
+    @Test
+    fun `reports gps location mode when a fix is available`() = runTest {
+        val analytics = RecordingAnalyticsTracker()
+
+        viewModel(
+            locationRepository = FakeLocationRepository(
+                LocationResult.Available(MoonLocation(latitude = -23.5, longitude = -46.6)),
+            ),
+            analytics = analytics,
+        )
+        advanceUntilIdle()
+
+        assertEquals(LocationMode.GPS, analytics.locationMode)
+        assertTrue(
+            analytics.events.any {
+                it is AnalyticsEvent.LocationModeActive && it.mode == LocationMode.GPS
+            },
+        )
     }
 }

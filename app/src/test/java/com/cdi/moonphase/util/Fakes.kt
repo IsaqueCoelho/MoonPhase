@@ -9,6 +9,10 @@ import com.cdi.moonphase.domain.model.LunarEvent
 import com.cdi.moonphase.domain.model.MoonInfo
 import com.cdi.moonphase.domain.model.MoonLocation
 import com.cdi.moonphase.domain.model.MoonPhase
+import com.cdi.moonphase.domain.analytics.AnalyticsEvent
+import com.cdi.moonphase.domain.analytics.AnalyticsTheme
+import com.cdi.moonphase.domain.analytics.AnalyticsTracker
+import com.cdi.moonphase.domain.analytics.LocationMode
 import com.cdi.moonphase.domain.model.PhaseType
 import com.cdi.moonphase.domain.model.ThemeMode
 import com.cdi.moonphase.domain.repository.LocationRepository
@@ -74,6 +78,7 @@ class FakeUserPrefsRepository(
 ) : UserPrefsRepository {
     private val themeState = MutableStateFlow(initialTheme)
     private val primedState = MutableStateFlow(initialPrimed)
+    private var firstOpenDate: String? = null
 
     override val themeMode: Flow<ThemeMode> = themeState
     override val hasPrimedLocationPermission: Flow<Boolean> = primedState
@@ -86,5 +91,29 @@ class FakeUserPrefsRepository(
         primedState.value = primed
     }
 
+    override suspend fun firstOpenDateOrSet(today: String): String =
+        firstOpenDate ?: today.also { firstOpenDate = it }
+
     fun currentPrimed(): Boolean = primedState.value
+}
+
+/** Records every tracked event and the latest global properties so tests can assert on them. */
+class RecordingAnalyticsTracker : AnalyticsTracker {
+    val events = mutableListOf<AnalyticsEvent>()
+    var theme: AnalyticsTheme? = null
+        private set
+    var locationMode: LocationMode? = null
+        private set
+
+    override fun track(event: AnalyticsEvent) {
+        events += event
+    }
+
+    override fun setTheme(theme: AnalyticsTheme) {
+        this.theme = theme
+    }
+
+    override fun setLocationMode(mode: LocationMode) {
+        locationMode = mode
+    }
 }

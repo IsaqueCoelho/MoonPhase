@@ -2,6 +2,10 @@ package com.cdi.moonphase.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cdi.moonphase.domain.analytics.AnalyticsEvent
+import com.cdi.moonphase.domain.analytics.AnalyticsTracker
+import com.cdi.moonphase.domain.analytics.LocationMode
+import com.cdi.moonphase.domain.analytics.ScreenName
 import com.cdi.moonphase.domain.model.LocationResult
 import com.cdi.moonphase.domain.model.MoonLocation
 import com.cdi.moonphase.domain.model.ThemeMode
@@ -27,13 +31,18 @@ class HomeViewModel @Inject constructor(
     private val getUpcomingPhases: GetUpcomingPhases,
     private val refreshLocation: RefreshLocationUseCase,
     private val userPrefsRepository: UserPrefsRepository,
+    private val analytics: AnalyticsTracker,
     private val clock: Clock,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    /** location_mode_active fires once per session, when the mode is first determined. */
+    private var locationModeReported = false
+
     init {
+        analytics.track(AnalyticsEvent.ScreenView(ScreenName.HOME))
         observeTheme()
         load(isRefresh = false)
     }
@@ -48,6 +57,19 @@ class HomeViewModel @Inject constructor(
      */
     fun setTheme(mode: ThemeMode) {
         viewModelScope.launch { userPrefsRepository.setThemeMode(mode) }
+    }
+
+    /**
+     * Publishes the session's location mode as a global property and emits
+     * [AnalyticsEvent.LocationModeActive] once per session. A refresh that flips the mode still
+     * updates the global property, so later events are attributed to the current mode.
+     */
+    private fun reportLocationMode(mode: LocationMode) {
+        analytics.setLocationMode(mode)
+        if (!locationModeReported) {
+            locationModeReported = true
+            analytics.track(AnalyticsEvent.LocationModeActive(mode))
+        }
     }
 
     private fun observeTheme() {
@@ -68,8 +90,10 @@ class HomeViewModel @Inject constructor(
             }
 
             val today = LocalDate.now(clock)
-            val moonInfo = getMoonInfoForDate(today, location)
             val upcoming = getUpcomingPhases(today)
+            reportLocationMode(if (location != null) LocationMode.GPS else LocationMode.DATE_FALLBACK)
+
+            val moonInfo = getMoonInfoForDate(LocalDate.now(clock), location)
 
             _uiState.update {
                 it.copy(
