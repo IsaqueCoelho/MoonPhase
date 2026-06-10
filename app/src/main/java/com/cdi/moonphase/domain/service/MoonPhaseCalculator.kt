@@ -89,6 +89,27 @@ class MoonPhaseCalculator {
         return LunarEvent(phase, eventDate)
     }
 
+    /**
+     * The next [count] cardinal phases strictly after [from], in chronological order. Because the
+     * cardinals cycle in a fixed order (First Quarter → Full → Last Quarter → New), asking for the
+     * next four yields exactly one upcoming occurrence of each — what the "próximas fases" panel
+     * lists. Each step advances a cursor just past the event it found, so the following call lands
+     * on the next cardinal rather than re-reporting the same one.
+     */
+    fun upcomingCardinalEvents(from: Instant, zone: ZoneId, count: Int = 4): List<LunarEvent> {
+        require(count >= 0) { "count must be non-negative, was $count" }
+        val events = ArrayList<LunarEvent>(count)
+        var cursor = from
+        repeat(count) {
+            val event = nextCardinalEvent(cursor, zone)
+            events += event
+            // Advance one day past the event's date: cardinals are ~7.4 days apart, so this never
+            // skips the next one, and it reliably moves the cursor beyond the one just found.
+            cursor = event.date.plusDays(1).atStartOfDay(zone).toInstant()
+        }
+        return events
+    }
+
     /** Position within the current lunation in `[0.0, 1.0)`. */
     private fun cycleFractionAt(instant: Instant): Double {
         val daysSinceReference =

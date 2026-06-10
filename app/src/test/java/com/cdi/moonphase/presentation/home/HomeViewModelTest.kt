@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.cdi.moonphase.domain.model.LocationResult
 import com.cdi.moonphase.domain.model.MoonLocation
 import com.cdi.moonphase.domain.usecase.GetMoonInfoForDate
+import com.cdi.moonphase.domain.usecase.GetUpcomingPhases
 import com.cdi.moonphase.domain.usecase.RefreshLocationUseCase
 import com.cdi.moonphase.util.FakeLocationRepository
 import com.cdi.moonphase.util.FakeMoonRepository
@@ -33,6 +34,7 @@ class HomeViewModelTest {
         prefs: FakeUserPrefsRepository = FakeUserPrefsRepository(),
     ) = HomeViewModel(
         getMoonInfoForDate = GetMoonInfoForDate(FakeMoonRepository()),
+        getUpcomingPhases = GetUpcomingPhases(FakeMoonRepository()),
         refreshLocation = RefreshLocationUseCase(locationRepository),
         userPrefsRepository = prefs,
         clock = fixedClock,

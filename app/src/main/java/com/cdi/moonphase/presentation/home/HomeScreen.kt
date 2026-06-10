@@ -11,10 +11,14 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -47,6 +51,7 @@ import com.cdi.moonphase.domain.model.MoonInfo
 import com.cdi.moonphase.domain.model.MoonPhase
 import com.cdi.moonphase.domain.model.PhaseType
 import com.cdi.moonphase.domain.model.ThemeMode
+import com.cdi.moonphase.presentation.common.UpcomingPhasesPanel
 import com.cdi.moonphase.presentation.common.descriptionRes
 import com.cdi.moonphase.presentation.common.nameRes
 import com.cdi.moonphase.presentation.designsystem.MoonDisk
@@ -94,7 +99,14 @@ internal fun HomeContent(
         }
         if (moonInfo == null) return@Surface
 
-        Column(modifier = Modifier.fillMaxSize().safeContentPadding()) {
+        // Top + sides only: the bottom bar (in the Scaffold) already reserves the bottom inset.
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(
+                    WindowInsets.safeContent.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top),
+                ),
+        ) {
             // Top row: theme toggle on the right, generous 48 dp target.
             Row(
                 modifier = Modifier
@@ -114,7 +126,7 @@ internal fun HomeContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(Modifier.height(18.dp))
-                MoonHero(moonInfo)
+                MoonHero(moonInfo, uiState.upcomingEvents)
             }
 
             LocationFooter(
@@ -128,7 +140,7 @@ internal fun HomeContent(
 }
 
 @Composable
-private fun MoonHero(moonInfo: MoonInfo) {
+private fun MoonHero(moonInfo: MoonInfo, upcomingEvents: List<LunarEvent>) {
     val palette = MoonTheme.colors
     val phaseName = stringResource(moonInfo.phase.type.nameRes)
 
@@ -177,9 +189,16 @@ private fun MoonHero(moonInfo: MoonInfo) {
         textAlign = TextAlign.Center,
     )
 
-    moonInfo.nextEvent?.let { event ->
+    // Fase 2: the single "próxima fase" card grows into the próximas-fases panel. Falls back to
+    // the single next-event card if the upcoming list could not be projected.
+    if (upcomingEvents.isNotEmpty()) {
         Spacer(Modifier.height(24.dp))
-        NextPhaseCard(event)
+        UpcomingPhasesPanel(events = upcomingEvents, today = moonInfo.date)
+    } else {
+        moonInfo.nextEvent?.let { event ->
+            Spacer(Modifier.height(24.dp))
+            NextPhaseCard(event)
+        }
     }
     Spacer(Modifier.height(24.dp))
 }

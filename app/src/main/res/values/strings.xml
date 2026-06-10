@@ -45,4 +45,40 @@
     <string name="permission_open_settings">Abrir configurações</string>
     <string name="permission_continue_without">Continuar sem localização</string>
     <string name="permission_denied_hint">Permissão negada. Você pode liberá-la nas configurações do app.</string>
+
+    <!-- Navegação (bottom bar) -->
+    <string name="nav_today">Hoje</string>
+    <string name="nav_calendar">Calendário</string>
+
+    <!-- Calendário -->
+    <string name="calendar_prev_month">Mês anterior</string>
+    <string name="calendar_next_month">Próximo mês</string>
+    <string name="calendar_share_month">Compartilhar mês</string>
+    <string name="calendar_day_cd">%1$s, %2$d%% iluminada</string>
+    <string name="calendar_today_cd">hoje</string>
+    <string-array name="calendar_weekday_initials">
+        <item>D</item>
+        <item>S</item>
+        <item>T</item>
+        <item>Q</item>
+        <item>Q</item>
+        <item>S</item>
+        <item>S</item>
+    </string-array>
+
+    <!-- Próximas fases (componente compartilhado) -->
+    <string name="upcoming_phases_title">Próximas fases</string>
+    <string name="upcoming_in_days">em %1$d dias</string>
+    <string name="upcoming_today">hoje</string>
+    <string name="upcoming_tomorrow">amanhã</string>
+
+    <!-- Detalhe do dia (bottom sheet) -->
+    <string name="sheet_handle_cd">Arraste para fechar</string>
+    <string name="sheet_share_phase">Compartilhar esta fase</string>
+
+    <!-- Compartilhamento -->
+    <string name="share_brand">Fases da Lua</string>
+    <string name="share_caption_format">%1$s · %2$d%%</string>
+    <string name="share_chooser_title">Compartilhar fase da Lua</string>
+    <string name="share_month_chooser_title">Compartilhar calendário lunar</string>
 </resources>
