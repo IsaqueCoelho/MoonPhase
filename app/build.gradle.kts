@@ -7,10 +7,11 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
-// Apply the Firebase google-services plugin only once a config file is present, so the project
-// builds and runs with analytics dormant until you drop in app/google-services.json.
+// Apply the Firebase google-services + Crashlytics plugins only once a config file is present,
+// so the project builds and runs with reporting dormant until you drop in app/google-services.json.
 if (project.file("google-services.json").exists()) {
     apply(plugin = libs.plugins.google.services.get().pluginId)
+    apply(plugin = libs.plugins.firebase.crashlytics.get().pluginId)
 }
 
 android {
@@ -86,9 +87,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Analytics (Firebase) — backend stays dormant until app/google-services.json is added
+    // Analytics & Crashlytics (Firebase) — stay dormant until app/google-services.json is added
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

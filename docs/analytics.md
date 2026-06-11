@@ -1,6 +1,7 @@
-# Analytics (Fase 2)
+# Analytics & Crashlytics (Fase 2)
 
-Implements the product-analytics tag plan in `fase 2/analytics-fase2.txt`.
+Implements the product-analytics tag plan in `fase 2/analytics-fase2.txt`, plus Firebase
+Crashlytics behind the same dormant-until-configured pattern.
 
 ## Architecture
 
@@ -23,15 +24,34 @@ Set as Firebase user properties and merged into each event's params. `theme` is 
 `MainActivity` (only place the resolved light/dark is known); `locationMode` from `HomeViewModel`;
 `firstOpenDate` is stamped once in DataStore (`UserPrefsRepository.firstOpenDateOrSet`).
 
+## Crashlytics
+
+Same provider-agnostic shape as analytics:
+
+- `domain/crash/CrashReporter` — the only type feature code touches (record non-fatals,
+  breadcrumbs, custom keys).
+- `data/crash/FirebaseCrashReporter` — Firebase Crashlytics backend; no-ops until a default
+  `FirebaseApp` exists, and echoes recorded non-fatals to logcat (`MoonCrash`) in debug.
+
+Integrations:
+- Uncaught crashes are captured automatically by the SDK.
+- `DefaultAnalyticsTracker` mirrors every analytics event as a Crashlytics breadcrumb and every
+  global property as a custom key, so crash reports are filterable by theme / locationMode /
+  sessionId / appVersion / firstOpenDate.
+- `LocationDataSource` records the previously-swallowed location-provider exception as a
+  non-fatal (coroutine cancellation still propagates), giving visibility into activation health.
+
 ## Enabling Firebase reporting
 
 The build is intentionally dormant until configured, so it compiles and runs today:
 
 1. Add your `app/google-services.json` from the Firebase console (package `com.cdi.moonphase`).
-2. Rebuild. `app/build.gradle.kts` auto-applies the google-services plugin when that file is
-   present, and `FirebaseAnalyticsBackend` then activates with no code change.
+2. Rebuild. `app/build.gradle.kts` auto-applies the google-services + Crashlytics plugins when
+   that file is present, and the Firebase analytics/crash backends then activate with no code
+   change.
 
-Until then, debug builds still print the full event stream to logcat.
+Until then, debug builds still print the full event stream (`MoonAnalytics`) and recorded
+non-fatals (`MoonCrash`) to logcat.
 
 ## Event coverage
 

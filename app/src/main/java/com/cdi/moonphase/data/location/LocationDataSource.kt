@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.cdi.moonphase.data.mapper.toMoonLocation
 import com.cdi.moonphase.di.IoDispatcher
+import com.cdi.moonphase.domain.crash.CrashReporter
 import com.cdi.moonphase.domain.model.LocationResult
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
@@ -16,6 +17,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Encapsulates [FusedLocationProviderClient]. Returns a domain [LocationResult], translating
@@ -25,6 +27,7 @@ import javax.inject.Inject
 class LocationDataSource @Inject constructor(
     @ApplicationContext private val context: Context,
     private val fusedClient: FusedLocationProviderClient,
+    private val crashReporter: CrashReporter,
     @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) {
 
@@ -40,6 +43,10 @@ class LocationDataSource @Inject constructor(
                     .await()
                     ?: fusedClient.lastLocation.await()
             }
+        }.onFailure { error ->
+            // Coroutine cancellation must propagate; only a real provider fault is a non-fatal.
+            if (error is CancellationException) throw error
+            crashReporter.recordException(error)
         }.getOrNull()
 
         location?.toMoonLocation()?.let(LocationResult::Available) ?: LocationResult.Unavailable

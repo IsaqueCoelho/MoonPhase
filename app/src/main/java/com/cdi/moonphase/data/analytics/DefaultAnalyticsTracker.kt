@@ -5,6 +5,7 @@ import com.cdi.moonphase.domain.analytics.AnalyticsEvent
 import com.cdi.moonphase.domain.analytics.AnalyticsTheme
 import com.cdi.moonphase.domain.analytics.AnalyticsTracker
 import com.cdi.moonphase.domain.analytics.LocationMode
+import com.cdi.moonphase.domain.crash.CrashReporter
 import com.cdi.moonphase.domain.repository.UserPrefsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +31,7 @@ import javax.inject.Singleton
 class DefaultAnalyticsTracker @Inject constructor(
     private val backends: List<@JvmSuppressWildcards AnalyticsBackend>,
     private val userPrefsRepository: UserPrefsRepository,
+    private val crashReporter: CrashReporter,
     private val clock: Clock,
 ) : AnalyticsTracker {
 
@@ -51,6 +53,8 @@ class DefaultAnalyticsTracker @Inject constructor(
     override fun track(event: AnalyticsEvent) {
         val merged = globalProperties + event.params
         backends.forEach { it.logEvent(event.name, merged) }
+        // Mirror the event as a Crashlytics breadcrumb so a crash report shows what led up to it.
+        crashReporter.log(event.name)
     }
 
     override fun setTheme(theme: AnalyticsTheme) = setGlobalProperty(KEY_THEME, theme.wire)
@@ -60,6 +64,8 @@ class DefaultAnalyticsTracker @Inject constructor(
     private fun setGlobalProperty(key: String, value: String) {
         globalProperties[key] = value
         backends.forEach { it.setUserProperty(key, value) }
+        // Keep crash reports filterable by the same dimensions (theme, locationMode, sessionId, ...).
+        crashReporter.setCustomKey(key, value)
     }
 
     private companion object {
